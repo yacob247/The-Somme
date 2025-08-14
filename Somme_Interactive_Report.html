@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Experience of Soldiers: The Battle of the Somme – Interactive Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Merriweather:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#2B2D42;
+    --muted:#8D99AE;
+    --accent:#D90429;
+    --accent-2:#4ECDC4;
+    --paper:#FFFFFF;
+    --bg:#FAFAFA;
+    --line:#E6E8EC;
+  }
+  html, body {
+    margin:0; padding:0; background:var(--bg); color:var(--ink);
+    font-family: "Lato", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", sans-serif;
+    line-height:1.6; font-size:12pt;
+  }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .wrap {
+    display:grid;
+    grid-template-columns: 280px 1fr;
+    gap:22px;
+    max-width: 1100px;
+    margin: 24px auto 48px;
+    padding: 0 16px;
+  }
+  /* Sticky TOC */
+  nav.toc {
+    position: sticky;
+    top: 16px;
+    height: fit-content;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 14px 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.04);
+  }
+  nav.toc h3 {
+    font-family:"Merriweather", serif; font-weight:900; margin:4px 0 8px; font-size:13pt;
+  }
+  nav.toc ol { margin:0; padding-left:18px; }
+  nav.toc li { margin:6px 0; }
+  /* Title Card */
+  .titlecard {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.05);
+  }
+  .badge {
+    display:inline-flex; gap:8px; align-items:center; font-size:10.5pt; color:#334155;
+    border:1px solid var(--line); border-radius:999px; padding:6px 10px; background:#F8FAFF;
+  }
+  .titlecard h1 {
+    font-family:"Merriweather", serif;
+    font-size: 28pt; line-height:1.15; margin:8px 0 4px;
+  }
+  .subtitle { color:var(--muted); margin:0 0 12px; font-weight:700; letter-spacing:.02em; }
+  .meta {
+    display:grid; grid-template-columns: repeat(4,1fr); gap:10px; margin-top:12px;
+  }
+  .meta div {
+    border:1px solid var(--line); border-radius:12px; padding:8px 10px; background:#FBFBFD;
+    font-size:10.5pt;
+  }
+  .meta strong { display:block; font-size:9.5pt; color:#6b7280; margin-bottom:2px; }
+  .editable { outline: none; border-bottom:1px dashed #e2e8f0; }
+  /* Section card */
+  .card {
+    margin-top:18px;
+    background: var(--paper);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:18px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.045);
+  }
+  .card h2, .card h3 { font-family:"Merriweather", serif; }
+  .card h2 { font-size:18pt; margin:6px 0 12px; }
+  .card h3 { font-size:13.5pt; margin:12px 0 6px; }
+  .twocol { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  /* Image frame */
+  .frame {
+    border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#F5F7FB;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  }
+  .frame img { display:block; width:100%; height:auto; }
+  .frame .cap {
+    padding:8px 10px; font-size:10.5pt; color:#606A79; border-top:1px solid var(--line);
+    background: linear-gradient(180deg, #fff, #F8FAFF);
+  }
+  .upload {
+    display:flex; justify-content:space-between; align-items:center; gap:8px; margin:8px 0;
+  }
+  .upload input[type="file"] { display:none; }
+  .btn {
+    display:inline-flex; align-items:center; gap:8px;
+    border:1px solid var(--line); background:#FFFFFF; border-radius:12px; padding:8px 12px;
+    cursor:pointer; font-weight:700;
+    box-shadow: 0 1px 6px rgba(0,0,0,.05);
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,.08); }
+  .callout {
+    border-left:4px solid var(--accent); background:#FFF5F5; padding:12px; border-radius:12px; font-size:11pt;
+  }
+  details { border:1px dashed var(--line); border-radius:12px; padding:10px 12px; background:#FEFEFF; }
+  details summary { cursor:pointer; font-weight:700; }
+  .refs ol { padding-left:18px; }
+  .refs li { margin:6px 0; }
+  .foot { font-size:10pt; color:var(--muted); }
+  /* Print styles */
+  @media print {
+    body { background:white; }
+    .wrap { display:block; margin:0; padding:0; }
+    nav.toc { display:none; }
+    .titlecard, .card { box-shadow:none; border-color:#DADDE1; }
+    .page {
+      page-break-after:always;
+    }
+    /* A4 size and margins */
+    @page { size:A4; margin: 18mm 18mm 20mm 18mm; }
+    /* Footer page numbers */
+    body::after {
+      counter-reset: page;
+      content: "";
+    }
+    .pagenum::after {
+      counter-increment: page;
+      content: counter(page);
+    }
+    .no-print { display:none !important; }
+  }
+  /* Screen helper footer */
+  .screen-footer {
+    text-align:center; color:var(--muted); font-size:10.5pt; margin-top:16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- Sticky TOC -->
+  <nav class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#title">Title Page</a></li>
+      <li><a href="#sommedoc">The Battle of the Somme</a></li>
+      <li><a href="#sources">References</a></li>
+    </ol>
+    <div class="foot">Tip: Use the <strong>Upload</strong> buttons to drop in maps and images, then print on A4.</div>
+  </nav>
+
+  <main>
+    <!-- Title Page Card -->
+    <section id="title" class="titlecard card page">
+      <span class="badge">NSW • Year 11 Modern History</span>
+      <h1>Experience of Soldiers: <em>The Battle of the Somme</em></h1>
+      <p class="subtitle">Double‑Sided A4 Report • ~500 words • Print and paste into workbook</p>
+
+      <div class="meta">
+        <div><strong>Student</strong><span class="editable" contenteditable="true">Enter your name…</span></div>
+        <div><strong>Class</strong><span class="editable" contenteditable="true">Year 11 EAL/D</span></div>
+        <div><strong>Teacher</strong><span class="editable" contenteditable="true">Enter teacher…</span></div>
+        <div><strong>Date</strong><span>14 August 2025</span></div>
+      </div>
+
+      <details style="margin-top:14px;">
+        <summary>Instructions (click to expand)</summary>
+        <ul>
+          <li>Keep to ~<strong>500 words</strong> for this battle.</li>
+          <li>Include: dates, location + map, forces & casualties, fighting & weapons, aims & objectives, description of events, results & significance.</li>
+          <li>Add a <strong>primary source</strong> quote showing soldier experiences and a <strong>secondary source</strong> explaining significance.</li>
+          <li>Optional: add a relevant YouTube link.</li>
+        </ul>
+      </details>
+    </section>
+
+    <!-- Somme Document -->
+    <section id="sommedoc" class="card page">
+      <h2>The Battle of the Somme (1 July – 18 November 1916)</h2>
+
+      <div class="twocol">
+        <div>
+          <h3>Dates & Location</h3>
+          <p>Somme River sector, northern France. Add and label a map.</p>
+
+          <div class="frame">
+            <img id="mapSomme" alt="Map of the Somme sector (upload to replace)"
+                 src="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='900' height='520'><rect width='100%' height='100%' fill='%23F0F3F9'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%238D99AE' font-family='Lato' font-size='24'>Upload Somme Map</text></svg>">
+            <div class="cap">Map: Somme sector (insert source).</div>
+          </div>
+          <div class="upload">
+            <label class="btn"><input type="file" accept="image/*" data-target="mapSomme">Upload Map</label>
+            <span class="foot">Accepted: PNG/JPG/SVG.</span>
+          </div>
+        </div>
+
+        <div>
+          <h3>Forces & Casualties</h3>
+          <p>Summarise numbers engaged and casualties (British, French, German). Use a reliable secondary source and cite below.</p>
+          <details>
+            <summary>Extra Notes (optional)</summary>
+            <p>Opening day losses on 1 July; attritional phases; national contingents (e.g., ANZAC at Pozières).</p>
+          </details>
+        </div>
+      </div>
+
+      <div class="twocol">
+        <div>
+          <h3>Fighting & Weapons</h3>
+          <p>Trench warfare, week‑long preliminary bombardments, machine‑gun defence, creeping barrages; tanks introduced at Flers‑Courcelette (Sept 1916).</p>
+
+          <div class="frame">
+            <img id="weaponsSomme" alt="Weapons used on the Western Front (upload to replace)"
+                 src="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='900' height='520'><rect width='100%' height='100%' fill='%23F0F3F9'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%238D99AE' font-family='Lato' font-size='24'>Upload Weapons Image</text></svg>">
+            <div class="cap">Weapons of the Western Front (insert source).</div>
+          </div>
+          <div class="upload">
+            <label class="btn"><input type="file" accept="image/*" data-target="weaponsSomme">Upload Image</label>
+            <span class="foot">Tip: Add labels for artillery, tanks, MGs.</span>
+          </div>
+        </div>
+
+        <div>
+          <h3>Aims & Objectives</h3>
+          <p>Relieve pressure on the French at Verdun; wear down German forces through attrition; support Allied coordination.</p>
+          <details>
+            <summary>Teacher Checkpoint</summary>
+            <p>Link aims to outcomes in your <em>Results & Significance</em> section.</p>
+          </details>
+        </div>
+      </div>
+
+      <h3>Description of Events</h3>
+      <p contenteditable="true" class="editable">Outline key phases: 1 July opening assault; Pozières and Mouquet Farm; attrition into August; tanks at Flers‑Courcelette; late‑autumn operations.</p>
+
+      <h3>Results & Significance</h3>
+      <p contenteditable="true" class="editable">Assess whether aims were met; discuss territorial changes, casualties, morale, and the battle’s legacy in Allied and German narratives.</p>
+
+      <div class="callout" style="margin-top:12px;">
+        <strong>Primary Source (Somme)</strong>
+        <ul>
+          <li title="Australian soldier diary with vivid descriptions of the Somme and Pozières, 1916.">
+            <a href="https://www.awm.gov.au/collection/LIB100044013" target="_blank" rel="noopener">Archie Barwick – WWI Diaries (AWM)</a>
+          </li>
+          <li title="Command‑level perspective; compare diary tone to soldiers’ experiences.">
+            <a href="https://archive.org/details/douglashaigwardi0000haig" target="_blank" rel="noopener">Douglas Haig – War Diaries & Letters</a>
+          </li>
+        </ul>
+        <strong>Secondary Source (Somme)</strong>
+        <ul>
+          <li title="Clear overview of aims, opening day, casualties, and longer‑term impact.">
+            <a href="https://www.iwm.org.uk/history/what-was-the-battle-of-the-somme" target="_blank" rel="noopener">Imperial War Museums – What Was the Battle of the Somme?</a>
+          </li>
+          <li title="Context for weapons referenced (artillery, MGs, tanks).">
+            <a href="https://www.nam.ac.uk/explore/weapons-western-front" target="_blank" rel="noopener">National Army Museum – Weapons of the Western Front</a>
+          </li>
+        </ul>
+        <details>
+          <summary>Optional: YouTube link</summary>
+          <p class="foot">Paste a concise documentary link here: <span class="editable" contenteditable="true">https://www.youtube.com/…</span></p>
+        </details>
+      </div>
+    </section>
+
+    <!-- References -->
+    <section id="sources" class="card page">
+      <h2>References & Source List</h2>
+      <p class="foot">These are pre‑filled; add more as needed. The list auto‑sorts A→Z on load.</p>
+
+      <div class="refs">
+        <h3>Primary</h3>
+        <ol id="bib-primary">
+          <li>Barwick, A. A. (1914–1918). <em>War Diaries</em>. Canberra: Australian War Memorial. Available at: <a href="https://www.awm.gov.au/collection/LIB100044013" target="_blank" rel="noopener">AWM</a>.</li>
+          <li>Haig, D. (1914–1918). <em>War Diaries and Letters</em>. Selected entries (Somme, 1916). Available at: <a href="https://archive.org/details/douglashaigwardi0000haig" target="_blank" rel="noopener">Internet Archive</a>.</li>
+        </ol>
+
+        <h3>Secondary</h3>
+        <ol id="bib-secondary">
+          <li>Imperial War Museums. “What Was the Battle of the Somme?” Available at: <a href="https://www.iwm.org.uk/history/what-was-the-battle-of-the-somme" target="_blank" rel="noopener">iwm.org.uk</a>.</li>
+          <li>National Army Museum. “Weapons of the Western Front.” Available at: <a href="https://www.nam.ac.uk/explore/weapons-western-front" target="_blank" rel="noopener">nam.ac.uk</a>.</li>
+          <li>FirstWorldWar.com – “Battles (Index)”. Available at: <a href="https://www.firstworldwar.com/battles/" target="_blank" rel="noopener">firstworldwar.com</a>.</li>
+        </ol>
+      </div>
+      <button class="btn no-print" id="sortBib">Re‑sort bibliography</button>
+    </section>
+
+    <div class="screen-footer no-print">
+      Ready to print: press <strong>Ctrl/Cmd + P</strong> → Destination: <em>Save as PDF</em> → Paper size: <em>A4</em> → Margins: <em>Default</em>.
+    </div>
+  </main>
+</div>
+
+<script>
+// Image upload preview handler
+document.querySelectorAll('input[type="file"][data-target]').forEach(inp => {
+  inp.addEventListener('change', e => {
+    const id = inp.getAttribute('data-target');
+    const img = document.getElementById(id);
+    const file = inp.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => img.src = evt.target.result;
+    reader.readAsDataURL(file);
+  });
+});
+
+// Bibliography auto-sort (A→Z by text content)
+function sortList(ol) {
+  const items = Array.from(ol.children);
+  items.sort((a,b) => a.textContent.localeCompare(b.textContent));
+  items.forEach(li => ol.appendChild(li));
+}
+function sortBibliography() {
+  const primary = document.getElementById('bib-primary');
+  const secondary = document.getElementById('bib-secondary');
+  if (primary) sortList(primary);
+  if (secondary) sortList(secondary);
+}
+document.getElementById('sortBib').addEventListener('click', sortBibliography);
+window.addEventListener('DOMContentLoaded', sortBibliography);
+</script>
+
+</body>
+</html>
