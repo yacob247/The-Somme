@@ -325,6 +325,51 @@ function sortBibliography() {
 }
 document.getElementById('sortBib').addEventListener('click', sortBibliography);
 window.addEventListener('DOMContentLoaded', sortBibliography);
+
+// ---------------------------
+// 1. Auto-save editable fields
+// ---------------------------
+document.querySelectorAll('.editable').forEach(el => {
+  const key = el.dataset.key || el.textContent.slice(0,20); // unique key
+  // Load saved content
+  const saved = localStorage.getItem(key);
+  if (saved) el.innerHTML = saved;
+  // Save on input
+  el.addEventListener('input', () => localStorage.setItem(key, el.innerHTML));
+});
+
+// ---------------------------
+// 2. Persist uploaded images
+// ---------------------------
+document.querySelectorAll('input[type="file"][data-target]').forEach(inp => {
+  const targetId = inp.dataset.target;
+  const img = document.getElementById(targetId);
+  // Load saved image
+  const savedImg = localStorage.getItem(targetId + '-img');
+  if (savedImg) img.src = savedImg;
+  // Save new upload
+  inp.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      img.src = evt.target.result;
+      localStorage.setItem(targetId + '-img', evt.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+// ---------------------------
+// 3. Reset all saved data
+// ---------------------------
+function resetAll() {
+  if(confirm('Clear all saved text and uploaded images?')) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
 </script>
 
 </body>
