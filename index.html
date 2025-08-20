@@ -26,7 +26,7 @@
     display:grid;
     grid-template-columns: 280px 1fr;
     gap:22px;
-    max-width: 1100px;
+    max-width: 1600px;
     margin: 24px auto 48px;
     padding: 0 16px;
   }
@@ -71,7 +71,7 @@
     font-size:10.5pt;
   }
   .meta strong { display:block; font-size:9.5pt; color:#6b7280; margin-bottom:2px; }
-  .editable { outline: none; border-bottom:1px dashed #e2e8f0; }
+  .editable { outline: none; border-bottom:1px dashed #e2e8f0; padding:2px 0; display:inline-block; min-width:30px; }
   /* Section card */
   .card {
     margin-top:18px;
@@ -85,6 +85,11 @@
   .card h2 { font-size:18pt; margin:6px 0 12px; }
   .card h3 { font-size:13.5pt; margin:12px 0 6px; }
   .twocol { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  /* Map gallery grid */
+  .mapgrid { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top:12px; }
+  .mapcard { background:#fff; border:1px solid var(--line); border-radius:12px; padding:8px; text-align:center; }
+  .mapcard img { max-width:100%; height:300px; object-fit:cover; border-radius:8px; }
+  .mapcard .cap { font-size:10pt; color:var(--muted); margin-top:6px; }
   /* Image frame */
   .frame {
     border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#F5F7FB;
@@ -114,6 +119,22 @@
   .refs ol { padding-left:18px; }
   .refs li { margin:6px 0; }
   .foot { font-size:10pt; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; margin-top:10px; }
+  table th, table td { border:1px solid var(--line); padding:8px 10px; text-align:left; font-size:11pt; background:#fff; }
+  table th { background:#FBFBFD; font-weight:700; }
+  .timeline td { vertical-align:top; }
+  .quote { font-style:italic; margin:8px 0; padding:8px 10px; border-radius:10px; background:#FBFCFF; border:1px solid var(--line); }
+
+  /* Modal (image popup) styles */
+  .mapcard img, .frame img { cursor: zoom-in; }
+  #imgModal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(11,12,16,0.6); z-index:9999; padding:24px; }
+  #imgModal.open { display:flex; }
+  #imgModal .modal-inner { position:relative; max-width:1100px; width:100%; max-height:90vh; background:var(--paper); border-radius:12px; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,.5); }
+  #imgModal .modal-body { padding:16px; text-align:center; }
+  #imgModal img { display:block; max-width:100%; max-height:70vh; margin:0 auto; }
+  #imgModal .modal-cap { padding:12px 16px; font-size:11pt; color:var(--muted); border-top:1px solid var(--line); text-align:center; }
+  #imgModal .modal-close { position:absolute; top:8px; right:8px; background:transparent; border:0; color:var(--ink); font-size:20px; cursor:pointer; padding:8px; }
+
   /* Print styles */
   @media print {
     body { background:white; }
@@ -123,18 +144,10 @@
     .page {
       page-break-after:always;
     }
-    /* A4 size and margins */
     @page { size:A4; margin: 18mm 18mm 20mm 18mm; }
-    /* Footer page numbers */
-    body::after {
-      counter-reset: page;
-      content: "";
-    }
-    .pagenum::after {
-      counter-increment: page;
-      content: counter(page);
-    }
     .no-print { display:none !important; }
+    .mapgrid { grid-template-columns: 1fr 1fr 1fr; }
+    .mapcard img { height:140px; }
   }
   /* Screen helper footer */
   .screen-footer {
@@ -150,10 +163,12 @@
     <h3>Contents</h3>
     <ol>
       <li><a href="#title">Title Page</a></li>
+      <li><a href="#maps">Map Gallery</a></li>
       <li><a href="#sommedoc">The Battle of the Somme</a></li>
+      <li><a href="#timeline">Chronology & Timeline</a></li>
       <li><a href="#sources">References</a></li>
     </ol>
-    <div class="foot">Tip: Use the <strong>Upload</strong> buttons to drop in maps and images, then print on A4.</div>
+    <div class="foot">Tip: Upload maps first,  they'll appear immediately in the slide/print layout.</div>
   </nav>
 
   <main>
@@ -161,13 +176,13 @@
     <section id="title" class="titlecard card page">
       <span class="badge">NSW • Year 11 Modern History</span>
       <h1>Experience of Soldiers: <em>The Battle of the Somme</em></h1>
-      <p class="subtitle">Double‑Sided A4 Report • ~500 words • Print and paste into workbook</p>
+      <p class="subtitle">Double-Sided A4 Report • ~500 words • Print and paste into workbook</p>
 
       <div class="meta">
-        <div><strong>Student</strong><span class="editable" contenteditable="true">Enter your name…</span></div>
-        <div><strong>Class</strong><span class="editable" contenteditable="true">Year 11 EAL/D</span></div>
-        <div><strong>Teacher</strong><span class="editable" contenteditable="true">Enter teacher…</span></div>
-        <div><strong>Date</strong><span>14 August 2025</span></div>
+        <div><strong>Student</strong><span class="editable" contenteditable="true" id="studentName">Yaco Okour</span></div>
+        <div><strong>Class</strong><span class="editable" contenteditable="true" id="className">Year 11 History</span></div>
+        <div><strong>Teacher</strong><span class="editable" contenteditable="true" id="teacherName">Mr Retsos</span></div>
+        <div><strong>Date</strong><span class="editable" contenteditable="true" id="dateField">14 August 2025</span></div>
       </div>
 
       <details style="margin-top:14px;">
@@ -181,104 +196,243 @@
       </details>
     </section>
 
+    <!-- Map Gallery -->
+    <section id="maps" class="card page">
+      <h2>Map gallery,  upload recommended maps</h2>
+      <p class="foot">Recommended filenames: <em>somme-campaign-map.png, somme.phase-july.png, somme-phase-sept.png, trench-cross-section.png, somme-craters-topo.png, somme-troop-disposition.png</em></p>
+
+      <div class="mapgrid" aria-live="polite">
+        <div class="mapcard">
+          <img id="mapSomme" alt="Primary campaign map placeholder" src="map.jpg">
+          <div class="cap">Campaign map,  overall Somme front (id: <code>mapSomme</code>)</div>
+          <div class="upload" style="justify-content:center; margin-top:8px;">
+            <label class="btn"><input type="file" accept="image/png,image/jpeg" data-target="mapSomme">Upload</label>
+          </div>
+          <div class="explain">Explanation: This campaign map shows the approximately 40‑kilometre Somme front (July–Nov 1916). Use it to illustrate where major actions and salient features (ridges, waterways) occurred and how the front‑line developed during the offensive.</div>
+        </div>
+
+        <div class="mapcard">
+          <img id="mapPhaseJuly" alt="Phase July map placeholder" src="placeholder.png">
+          <div class="cap">Phase inset,  opening assault sectors (id: <code>mapPhaseJuly</code>)</div>
+          <div class="upload" style="justify-content:center;">
+            <label class="btn"><input type="file" accept="image/png,image/jpeg" data-target="mapPhaseJuly">Upload</label>
+          </div>
+          <div class="explain">Explanation: This inset focuses on the opening assault sectors on 1 July 1916, identifying objective lines, no‑man's land and where the heaviest losses occurred,  useful for explaining the first‑day disaster.</div>
+        </div>
+
+        <div class="mapcard">
+          <img id="trenchCross" alt="Trench cross-section placeholder" src="placeholder.png">
+          <div class="cap">Trench cross-section diagram (id: <code>trenchCross</code>)</div>
+          <div class="upload" style="justify-content:center;">
+            <label class="btn"><input type="file" accept="image/png,image/jpeg" data-target="trenchCross">Upload</label>
+          </div>
+          <div class="explain">Explanation: A cross‑section diagram clarifies trench depth, the layout of front, support and reserve trenches, communication trenches, and how defences concentrated fire on attackers crossing open ground.</div>
+        </div>
+
+        <div class="mapcard">
+          <img id="craterMap" alt="Crater topography placeholder" src="cartermap.jpg">
+          <div class="cap">Cratered landscape / topo (id: <code>craterMap</code>)</div>
+          <div class="upload" style="justify-content:center;">
+            <label class="btn"><input type="file" accept="image/png,image/jpeg" data-target="craterMap">Upload</label>
+          </div>
+          <div class="explain">Explanation: This map highlights the cratered and heavily shell‑damaged terrain produced by prolonged artillery and mining. It explains why movement, logistics and follow‑up attacks were so difficult later in the campaign.</div>
+        </div>
+
+        <div class="mapcard">
+          <img id="troopMap" alt="Troop dispositions placeholder" src="placeholder.png">
+          <div class="cap">Troop dispositions (1 July) (id: <code>troopMap</code>)</div>
+          <div class="upload" style="justify-content:center;">
+            <label class="btn"><input type="file" accept="image/png,image/jpeg" data-target="troopMap">Upload</label>
+          </div>
+          <div class="explain">Explanation: This troops‑disposition map shows where British, Dominion and German units were sited at the opening of the offensive,  helpful for discussing concentrations, gaps, and tactical surprises that influenced outcomes.</div>
+        </div>
+      </div>
+      
+      <p class="foot" style="margin-top:10px;">Tip: use large campaign maps for <strong>mapSomme</strong>, and cropped insets for phase maps. Diagrams are better as PNG now.</p>
+    </section>
+
     <!-- Somme Document -->
     <section id="sommedoc" class="card page">
       <h2>The Battle of the Somme (1 July – 18 November 1916)</h2>
 
       <div class="twocol">
         <div>
-          <h3>Dates & Location</h3>
+          <h3>Dates &amp; Location</h3>
           <p>Somme River sector, northern France. Add and label a map.</p>
 
-          <div class="frame">
-            <img id="mapSomme" alt="Map of the Somme sector (upload to replace)"
-                 src="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='900' height='520'><rect width='100%' height='100%' fill='%23F0F3F9'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%238D99AE' font-family='Lato' font-size='24'>Upload Somme Map</text></svg>">
-            <div class="cap">Map: Somme sector (insert source).</div>
-          </div>
-          <div class="upload">
-            <label class="btn"><input type="file" accept="image/*" data-target="mapSomme">Upload Map</label>
-            <span class="foot">Accepted: PNG/JPG/SVG.</span>
-          </div>
+          <!-- Primary map is displayed in the Map Gallery; keep a smaller preview here too -->
+<div class="frame">
+  <img id="mapSommePreview"
+       alt="Primary campaign map preview"
+       src="Preview.png" />
+  <div class="cap">Map preview: Somme sector (source: insert reference here).</div>
+</div>
+         </div>
         </div>
 
         <div>
-          <h3>Forces & Casualties</h3>
+          <h3>Forces &amp; Casualties</h3>
           <p>Summarise numbers engaged and casualties (British, French, German). Use a reliable secondary source and cite below.</p>
-          <details>
-            <summary>Extra Notes (optional)</summary>
-            <p>Opening day losses on 1 July; attritional phases; national contingents (e.g., ANZAC at Pozières).</p>
+
+          <table aria-label="Forces and Casualties">
+            <thead>
+              <tr><th>Category</th><th>Estimated number</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Allied troops engaged (total, July–Nov)</td><td>Over 1,000,000 (cumulative across months)</td></tr>
+              <tr><td>German troops engaged (approx.)</td><td>Several hundred thousand (cumulative)</td></tr>
+              <tr><td>Allied casualties (killed/wounded/missing)</td><td>~620,000 (British ~419,000; French ~204,000,  estimates vary)</td></tr>
+              <tr><td>German casualties (killed/wounded/missing)</td><td>~500,000–600,000 (estimates vary)</td></tr>
+              <tr><td>First day (1 July 1916),  British casualties</td><td>~57,470 (around 19,240 killed)</td></tr>
+              <tr><td>Combined approximate total casualties</td><td>Over 1,000,000 (both sides, killed + wounded)</td></tr>
+            </tbody>
+          </table>
+
+          <details style="margin-top:8px;">
+            <summary>Notes on numbers</summary>
+            <p class="foot">Figures differ by historian and archive. For classroom use cite IWM, AWM or official national statistics; state clearly if figures are 'estimates' and whether 'missing' are included.</p>
           </details>
+        </div>
+
+      <div class="twocol" style="margin-top:12px;">
+        <div>
+          <h3>Fighting &amp; Weapons</h3>
+          <p>Trench warfare, week-long preliminary bombardments, machine-gun defence, creeping barrages; tanks introduced at Flers-Courcelette (15 September 1916).</p>
+
+          <table aria-label="Weapons used on the Somme">
+            <thead>
+              <tr><th>Weapon / System</th><th>Role in Battle</th><th>Use / Example</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Heavy artillery & howitzers</td><td>Preparatory bombardments, counter-battery, destruction of wire and trenches</td><td>Week-long bombardment before 1 July; continuous shelling throughout campaign</td></tr>
+              <tr><td>Machine guns (Vickers, MG08)</td><td>Defensive firepower that inflicted mass casualties on attacking infantry</td><td>Responsible for much of the 1 July losses where wire remained intact</td></tr>
+              <tr><td>Rifles, bayonets, grenades</td><td>Close combat and trench clearing</td><td>Used in assaults and trench-raids</td></tr>
+              <tr><td>Trench mortars & mines (tunnelling)</td><td>Local destruction of strongpoints; create cratered landscape</td><td>Hawthorn Ridge mine (example); crater fields impeded movement</td></tr>
+              <tr><td>Aircraft (biplanes)</td><td>Reconnaissance and artillery spotting</td><td>Vital for adjusting barrage fire; limited ground attack</td></tr>
+              <tr><td>Tanks (Mark I)</td><td>Break wire, cross shell-cratered ground and support infantry</td><td>First used at Flers–Courcelette (15 Sept 1916),  limited numbers/mechanical issues</td></tr>
+              <tr><td>Specialist weapons (flamethrowers, Livens projectors)</td><td>Clearing dugouts and barrages of gas/smoke shells</td><td>Used in limited attacks and trench-clearing operations</td></tr>
+            </tbody>
+          </table>
+
+<div class="mapcard" aria-live="polite" >
+  <img id="weaponsSomme" alt="Weapons used on the Western Front (upload to replace)" src="weapons.jpg">
+  <div class="cap">Weapons of the Western Front (id: <code>weaponsSomme</code>)</div>
+  <div class="upload" style="justify-content:center; margin-top:8px;">
+    <label class="btn"><input type="file" accept="image/png,image/jpeg" data-target="weaponsSomme">Upload</label>
+  </div>
+  <div class="explain">Explanation: This image identifies major weapons systems used on the Somme and their battlefield roles,  helpful when linking technology to tactics and casualty causes.</div>
+</div>
+
+        </div>
+
+        <div>
+          <h3>Aims &amp; Objectives</h3>
+          <p>
+            <strong>Strategic objective (Allies):</strong> To remove the pressure of the French at Verdun, by obliging the Germans to withdraw troops from the Verdun sector and to inflict attritional casualties. <br>
+            <strong>British operational plans:</strong> To make a break in the German systems of defense, to take the key points - Péronne and Bapaume - and use the breach to penetrate into German-occupied territories. Greater good: Tip the balance on the Western Front by combining artillery, infantry and (eventually) armor and air support.
+          </p>
+
+          <details>
+            <summary>Teacher checkpoint</summary>
+            <p class="foot">Link these aims to the Results &amp; Significance section when writing your conclusion: did the action relieve Verdun? Did it achieve breakthrough? What was the cost?</p>
+          </details>
+
+          <h3 style="margin-top:12px;">Description of Events (editable)</h3>
+          <p contenteditable="true" class="editable" id="descEvents" style="display:block; min-height:60px;">
+            The offensive began after a prolonged artillery barrage. On 1 July British infantry advanced across no-man's land expecting German defenses neutralised. In many sectors wire and strongpoints remained, so machine guns and artillery devastated the attackers. Over the following months fighting settled into grinding assaults and local counter-attacks; the introduction of tanks in September signalled a technological shift but mechanical problems limited their immediate impact. By mid-November operations ceased with only limited territorial gains.
+          </p>
         </div>
       </div>
 
-      <div class="twocol">
-        <div>
-          <h3>Fighting & Weapons</h3>
-          <p>Trench warfare, week‑long preliminary bombardments, machine‑gun defence, creeping barrages; tanks introduced at Flers‑Courcelette (Sept 1916).</p>
+      <h3 id="timeline" style="margin-top:14px;">Chronology &amp; Key Phases</h3>
+      <table class="timeline" aria-label="Chronology and timeline">
+        <thead>
+          <tr><th style="width:22%;">Date / Period</th><th>Key events & short description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Late June 1916</td><td>Allied week-long preparatory artillery bombardment across the Somme sector to destroy wire and batteries.</td></tr>
+          <tr><td>1 July 1916</td><td>Opening assault,  British and Dominion forces advance after bombardment; catastrophic British casualties in many sectors (worst day in British military history).</td></tr>
+          <tr><td>July – August 1916</td><td>Local attacks and heavy fighting at Pozieres, Mouquet Farm, and the Somme salient; Australian and Dominion troops see severe losses.</td></tr>
+          <tr><td>15–22 Sept 1916</td><td>Flers–Courcelette,  first operational use of British tanks; limited breakthrough in places and capture of new ground (e.g., parts of Flers, Courcelette).</td></tr>
+          <tr><td>Sept – Oct 1916</td><td>Battles of Thiepval, Morval and Le Transloy; attritional fighting continues amid cratered and muddy terrain.</td></tr>
+          <tr><td>Nov 1916</td><td>Operations wind down amid worsening weather; offensive ends on 18 November with only modest territorial gains.</td></tr>
+        </tbody>
+      </table>
 
-          <div class="frame">
-            <img id="weaponsSomme" alt="Weapons used on the Western Front (upload to replace)"
-                 src="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='900' height='520'><rect width='100%' height='100%' fill='%23F0F3F9'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%238D99AE' font-family='Lato' font-size='24'>Upload Weapons Image</text></svg>">
-            <div class="cap">Weapons of the Western Front (insert source).</div>
-          </div>
-          <div class="upload">
-            <label class="btn"><input type="file" accept="image/*" data-target="weaponsSomme">Upload Image</label>
-            <span class="foot">Tip: Add labels for artillery, tanks, MGs.</span>
-          </div>
-        </div>
-
-        <div>
-          <h3>Aims & Objectives</h3>
-          <p>Relieve pressure on the French at Verdun; wear down German forces through attrition; support Allied coordination.</p>
-          <details>
-            <summary>Teacher Checkpoint</summary>
-            <p>Link aims to outcomes in your <em>Results & Significance</em> section.</p>
-          </details>
-        </div>
-      </div>
-
-      <h3>Description of Events</h3>
-      <p contenteditable="true" class="editable">Outline key phases: 1 July opening assault; Pozières and Mouquet Farm; attrition into August; tanks at Flers‑Courcelette; late‑autumn operations.</p>
-
-      <h3>Results & Significance</h3>
-      <p contenteditable="true" class="editable">Assess whether aims were met; discuss territorial changes, casualties, morale, and the battle’s legacy in Allied and German narratives.</p>
+      <h3 style="margin-top:14px;">Results &amp; Significance</h3>
+      <p contenteditable="true" class="editable" id="resultsSignificance">Assess whether aims were met; discuss territorial changes, casualties, morale, and the battle’s legacy in Allied and German narratives. Consider: limited tactical gains vs significant attrition of German manpower; tanks introduced but not decisive; cultural memory and the Somme as symbol of industrialised slaughter.</p>
 
       <div class="callout" style="margin-top:12px;">
-        <strong>Primary Source (Somme)</strong>
-        <ul>
-          <li title="Australian soldier diary with vivid descriptions of the Somme and Pozières, 1916.">
-            <a href="https://www.awm.gov.au/collection/LIB100044013" target="_blank" rel="noopener">Archie Barwick – WWI Diaries (AWM)</a>
-          </li>
-          <li title="Command‑level perspective; compare diary tone to soldiers’ experiences.">
-            <a href="https://archive.org/details/douglashaigwardi0000haig" target="_blank" rel="noopener">Douglas Haig – War Diaries & Letters</a>
-          </li>
-        </ul>
-        <strong>Secondary Source (Somme)</strong>
-        <ul>
-          <li title="Clear overview of aims, opening day, casualties, and longer‑term impact.">
-            <a href="https://www.iwm.org.uk/history/what-was-the-battle-of-the-somme" target="_blank" rel="noopener">Imperial War Museums – What Was the Battle of the Somme?</a>
-          </li>
-          <li title="Context for weapons referenced (artillery, MGs, tanks).">
-            <a href="https://www.nam.ac.uk/explore/weapons-western-front" target="_blank" rel="noopener">National Army Museum – Weapons of the Western Front</a>
-          </li>
-        </ul>
-        <details>
-          <summary>Optional: YouTube link</summary>
-          <p class="foot">Paste a concise documentary link here: <span class="editable" contenteditable="true">https://www.youtube.com/…</span></p>
+        <strong>Primary Source Extracts (short quotations,  ready to insert)</strong>
+
+        <div style="display:flex; gap:12px; margin-top:8px;">
+          <div style="flex:1;">
+            <div class="frame" style="padding:8px;"><img id="quote1Img" alt="Quote 1 thumbnail" src="quote1.jpg"></div>
+            <div class="cap" style="margin-top:6px;">Quote 1 thumbnail,  <code>quote1Img</code></div>
+            <div class="upload" style="justify-content:center; margin-top:6px;">
+              <label class="btn"><input type="file" accept="image/png,image/jpeg" data-target="quote1Img">Upload</label>
+            </div>
+            <p class="quote" style="margin-top:8px;">“And there wasn’t one of us in our battalion that ever got to the German lines. You couldn’t! It was absolutely impossible…”<br><small,  front-line soldier (IWM / battalion account)</small></p>
+            <p class="explain">Explanation: This quote highlights the impossibility many soldiers faced in reaching German lines and can be used to explain the tactical and physical barriers posed by wire, shell‑craters and defensive fire.</p>
+          </div>
+
+          <div style="flex:1;">
+            <div class="frame" style="padding:8px;"><img id="quote2Img" alt="Quote 2 thumbnail" src="quote2.jpg"></div>
+            <div class="cap" style="margin-top:6px;">Quote 2 thumbnail,  <code>quote2Img</code></div>
+            <div class="upload" style="justify-content:center; margin-top:6px;">
+              <label class="btn"><input type="file" accept="image/png,image/jpeg" data-target="quote2Img">Upload</label>
+            </div>
+            <p class="quote" style="margin-top:8px;">“It was what I always called the dance of hell.”<br><small,  artillery observer (IWM oral history)</small></p>
+            <p class="explain">Explanation: This short phrase summarises the chaos and horror seen by participants, useful for analysing metaphor and language in primary accounts and how veterans recalled the Somme.</p>
+          </div>
+
+          <div style="flex:1;">
+            <div class="frame" style="padding:8px;"><img id="quote3Img" alt="Quote 3 thumbnail" src="quote3.jpg"></div>
+            <div class="cap" style="margin-top:6px;">Quote 3 thumbnail,  <code>quote3Img</code></div>
+            <div class="upload" style="justify-content:center; margin-top:6px;">
+              <label class="btn"><input type="file" accept="image/png,image/jpeg" data-target="quote3Img">Upload</label>
+            </div>
+            <p class="quote" style="margin-top:8px;">“The men dropped down in rows.”<br><small,  survivor’s eyewitness (AWM diaries)</small></p>
+            <p class="explain">Explanation: A stark, visual description emphasising mass casualties and the immediate physical outcome of attacking across exposed ground,  useful as evidence of the human cost.</p>
+          </div>
+        </div>
+
+        <details style="margin-top:10px;">
+          <summary>Where to find originals (click to open)</summary>
+          <ul>
+            <li><a href="https://www.iwm.org.uk/history/what-was-the-battle-of-the-somme" target="_blank" rel="noopener">IWM,  Battle of the Somme overview & primary accounts</a></li>
+            <li><a href="https://www.awm.gov.au/collection/LIB100044013" target="_blank" rel="noopener">AWM,  Archie Barwick diaries (Pozieres / Somme)</a></li>
+            <li><a href="https://www.nationalarchives.gov.uk/" target="_blank" rel="noopener">UK National Archives,  battalion war diaries (search 1916 Somme)</a></li>
+          </ul>
         </details>
       </div>
+
+      <div style="margin-top:14px;">
+        <h3>Secondary Sources (historians)</h3>
+        <ul>
+          <li>Imperial War Museums: interpretive overview (use for classroom summary).</li>
+          <li>Gary Sheffield, William Philpott, Robin Prior,  modern academic analyses (quotes and pages can be inserted for assessment).</li>
+          <li>National Army Museum,  weapons & tactical context.</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:14px;" class="no-print">
+        <button class="btn" onclick="copyCitations()">Copy recommended citation links</button>
+        <span class="foot" style="margin-left:10px;">(Click to copy AWM/IWM links to clipboard for pasting into your bibliography.)</span>
+      </div>
+
     </section>
 
     <!-- References -->
     <section id="sources" class="card page">
       <h2>References & Source List</h2>
-      <p class="foot">These are pre‑filled; add more as needed. The list auto‑sorts A→Z on load.</p>
+      <p class="foot">These are pre-filled; add more as needed. The list auto-sorts A→Z on load.</p>
 
       <div class="refs">
         <h3>Primary</h3>
         <ol id="bib-primary">
           <li>Barwick, A. A. (1914–1918). <em>War Diaries</em>. Canberra: Australian War Memorial. Available at: <a href="https://www.awm.gov.au/collection/LIB100044013" target="_blank" rel="noopener">AWM</a>.</li>
-          <li>Haig, D. (1914–1918). <em>War Diaries and Letters</em>. Selected entries (Somme, 1916). Available at: <a href="https://archive.org/details/douglashaigwardi0000haig" target="_blank" rel="noopener">Internet Archive</a>.</li>
+          <li>Selected battalion war diaries (Somme, 1916). UK National Archives,  digitised copies and catalog entries.</li>
         </ol>
 
         <h3>Secondary</h3>
@@ -288,7 +442,12 @@
           <li>FirstWorldWar.com – “Battles (Index)”. Available at: <a href="https://www.firstworldwar.com/battles/" target="_blank" rel="noopener">firstworldwar.com</a>.</li>
         </ol>
       </div>
-      <button class="btn no-print" id="sortBib">Re‑sort bibliography</button>
+      <div style="margin-top:12px;">
+        <button class="btn no-print" id="sortBib">Re-sort bibliography</button>
+        <button class="btn no-print" onclick="resetAll()" style="margin-left:8px;">Reset saved content</button>
+      </div>
+
+      <p class="foot" style="margin-top:12px;">Print tip: set printer to A4, choose Save as PDF to create the two-page printable report.</p>
     </section>
 
     <div class="screen-footer no-print">
@@ -297,79 +456,221 @@
   </main>
 </div>
 
+<!-- Modal element for image popups (shared) -->
+<div id="imgModal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal-inner" role="document">
+    <button class="modal-close" aria-label="Close image (Esc)">✕</button>
+    <div class="modal-body">
+      <img id="modalImg" alt="" />
+      <div class="modal-cap" id="modalCap"></div>
+    </div>
+  </div>
+</div>
+
 <script>
-// Image upload preview handler
-document.querySelectorAll('input[type="file"][data-target]').forEach(inp => {
-  inp.addEventListener('change', e => {
-    const id = inp.getAttribute('data-target');
-    const img = document.getElementById(id);
-    const file = inp.files[0];
-    if (!file) return;
+// ---------- Convert file -> resized PNG dataURL ----------
+function fileToPngDataURL(file, maxWidth = 1600) {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = evt => img.src = evt.target.result;
-    reader.readAsDataURL(file);
-  });
-});
-
-// Bibliography auto-sort (A→Z by text content)
-function sortList(ol) {
-  const items = Array.from(ol.children);
-  items.sort((a,b) => a.textContent.localeCompare(b.textContent));
-  items.forEach(li => ol.appendChild(li));
-}
-function sortBibliography() {
-  const primary = document.getElementById('bib-primary');
-  const secondary = document.getElementById('bib-secondary');
-  if (primary) sortList(primary);
-  if (secondary) sortList(secondary);
-}
-document.getElementById('sortBib').addEventListener('click', sortBibliography);
-window.addEventListener('DOMContentLoaded', sortBibliography);
-
-// ---------------------------
-// 1. Auto-save editable fields
-// ---------------------------
-document.querySelectorAll('.editable').forEach(el => {
-  const key = el.dataset.key || el.textContent.slice(0,20); // unique key
-  // Load saved content
-  const saved = localStorage.getItem(key);
-  if (saved) el.innerHTML = saved;
-  // Save on input
-  el.addEventListener('input', () => localStorage.setItem(key, el.innerHTML));
-});
-
-// ---------------------------
-// 2. Persist uploaded images
-// ---------------------------
-document.querySelectorAll('input[type="file"][data-target]').forEach(inp => {
-  const targetId = inp.dataset.target;
-  const img = document.getElementById(targetId);
-  // Load saved image
-  const savedImg = localStorage.getItem(targetId + '-img');
-  if (savedImg) img.src = savedImg;
-  // Save new upload
-  inp.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = evt => {
-      img.src = evt.target.result;
-      localStorage.setItem(targetId + '-img', evt.target.result);
+    reader.onerror = () => reject(new Error('File read error'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Image load error'));
+      img.onload = () => {
+        const ratio = Math.min(1, maxWidth / img.naturalWidth);
+        const w = Math.round(img.naturalWidth * ratio);
+        const h = Math.round(img.naturalHeight * ratio);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff'; // avoid transparency surprises
+        ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          resolve(canvas.toDataURL('image/png'));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      img.src = reader.result;
     };
     reader.readAsDataURL(file);
   });
-});
+}
 
-// ---------------------------
-// 3. Reset all saved data
-// ---------------------------
-function resetAll() {
-  if(confirm('Clear all saved text and uploaded images?')) {
-    localStorage.clear();
-    location.reload();
+// ---------- Persist converted image and update element ----------
+async function setImageFromFile(imgEl, file) {
+  if (!imgEl || !file) return null;
+  const key = imgEl.id ? (imgEl.id + '-img') : null;
+  try {
+    const dataUrl = await fileToPngDataURL(file, 1600);
+    imgEl.src = dataUrl;
+    if (key) {
+      try { localStorage.setItem(key, dataUrl); } catch(e){ console.warn('localStorage set failed', e); }
+      // extra legacy-safe write for weaponsSomme specifically
+      if (imgEl.id === 'weaponsSomme') {
+        try { localStorage.setItem('weaponsSomme-img', dataUrl); } catch(e){/* ignore */ }
+      }
+    }
+    return dataUrl;
+  } catch (err) {
+    // fallback: raw dataURL
+    return new Promise(resolve => {
+      const r = new FileReader();
+      r.onload = e => {
+        const dataUrl = e.target.result;
+        imgEl.src = dataUrl;
+        if (key) {
+          try { localStorage.setItem(key, dataUrl); } catch(e){ console.warn('localStorage set failed', e); }
+          if (imgEl.id === 'weaponsSomme') {
+            try { localStorage.setItem('weaponsSomme-img', dataUrl); } catch(e){/* ignore */ }
+          }
+        }
+        resolve(dataUrl);
+      };
+      r.readAsDataURL(file);
+    });
   }
 }
 
+// ---------- File input handler for inputs with data-target ----------
+document.querySelectorAll('input[type="file"][data-target]').forEach(inp => {
+  inp.addEventListener('change', async (e) => {
+    const id = inp.getAttribute('data-target');
+    const img = document.getElementById(id);
+    const file = inp.files && inp.files[0];
+    if (!img || !file) return;
+    console.debug('Uploading file for', id, 'name:', file.name, 'size:', file.size);
+    const saved = await setImageFromFile(img, file);
+    // special-case preview sync for mapSomme
+    if (id === 'mapSomme') {
+      const preview = document.getElementById('mapSommePreview');
+      if (preview && saved) {
+        preview.src = saved;
+        try { localStorage.setItem('mapSommePreview-img', saved); } catch(e){}
+      }
+    }
+    // clear input so same-file re-upload will fire change
+    try { inp.value = ''; } catch(e){}
+    console.debug('Saved to localStorage key:', id + '-img');
+  });
+});
+
+// ---------- Use image URL programmatically and persist ----------
+function useImageUrl(imgId, url){
+  try {
+    const img = document.getElementById(imgId);
+    if(!img) return;
+    img.src = url;
+    try { localStorage.setItem(imgId + '-img', url); } catch (e) { console.warn(e); }
+    if(imgId === 'weaponsSomme'){
+      try { localStorage.setItem('weaponsSomme-img', url); } catch(e){}
+    }
+    if(imgId === 'mapSomme'){
+      const preview = document.getElementById('mapSommePreview');
+      if(preview){ preview.src = url; try { localStorage.setItem('mapSommePreview-img', url); } catch(e){} }
+    }
+  } catch(e){ console.warn(e); }
+}
+
+// ---------- Modal logic (unchanged behaviour) ----------
+(function(){
+  const modal = document.getElementById('imgModal');
+  const modalImg = document.getElementById('modalImg');
+  const modalCap = document.getElementById('modalCap');
+  const closeBtn = modal.querySelector('.modal-close');
+
+  function findCaption(el){
+    const mapcard = el.closest('.mapcard');
+    if(mapcard){ const c = mapcard.querySelector('.cap'); if(c) return c.innerText.trim(); }
+    const frame = el.closest('.frame');
+    if(frame){ const c = frame.querySelector('.cap'); if(c) return c.innerText.trim(); }
+    let sib = el.nextElementSibling; while(sib){ if(sib.classList && sib.classList.contains('cap')) return sib.innerText.trim(); sib = sib.nextElementSibling; }
+    return el.alt || '';
+  }
+
+  function openModal(src, caption, alt){
+    modalImg.src = src;
+    modalImg.alt = alt || '';
+    modalCap.textContent = caption || '';
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    closeBtn.focus();
+  }
+
+  function closeModal(){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+    modalImg.src = '';
+    modalCap.textContent = '';
+  }
+
+  document.addEventListener('click', function(e){
+    const clickedImg = e.target.closest('img');
+    if(!clickedImg) return;
+    if(clickedImg.closest('label') || clickedImg.closest('button')) return;
+    if(clickedImg.closest('.mapgrid') || clickedImg.closest('.mapcard') || clickedImg.closest('.frame')){
+      e.preventDefault();
+      const caption = findCaption(clickedImg);
+      openModal(clickedImg.src, caption, clickedImg.alt);
+    }
+  }, false);
+
+  modal.addEventListener('click', function(e){
+    if(e.target === modal || e.target === closeBtn) closeModal();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+})();
+
+// ---------- DOMContentLoaded: restore saved images and set defaults ----------
+window.addEventListener('DOMContentLoaded', () => {
+  // ensure all relevant images remember their original src (fallback)
+  const imageIds = ['mapSomme','mapPhaseJuly','trenchCross','craterMap','troopMap','weaponsSomme','quote1Img','quote2Img','quote3Img','mapSommePreview','weaponsSomme'];
+  imageIds.forEach(id => {
+    const img = document.getElementById(id);
+    if (!img) return;
+    // set defaultSrc if not present
+    if (!img.dataset.defaultSrc) img.dataset.defaultSrc = img.src || '';
+    // try to restore saved image (canonical key)
+    let saved = null;
+    try {
+      saved = localStorage.getItem(id + '-img');
+      // legacy fallback for weaponsSomme (older code used this key)
+      if (!saved && id === 'weaponsSomme') {
+        saved = localStorage.getItem('weaponsSomme-img') || localStorage.getItem('weaponsSomme_img');
+      }
+    } catch(e){ console.warn('localStorage read error for', id, e); }
+    if (saved) {
+      img.src = saved;
+      console.debug('Restored image for', id);
+    } else {
+      img.src = img.dataset.defaultSrc || img.src;
+    }
+  });
+
+  // If mapSommePreview has no saved copy, but mapSomme does, use it
+  try {
+    const preview = document.getElementById('mapSommePreview');
+    if (preview) {
+      const pSaved = localStorage.getItem('mapSommePreview-img');
+      const mainSaved = localStorage.getItem('mapSomme-img');
+      if (pSaved) preview.src = pSaved;
+      else if (mainSaved) preview.src = mainSaved;
+    }
+  } catch(e){ console.warn(e); }
+});
+
+function copyCitations(){ const citations = [
+  'AWM – Archie Barwick diaries: https://www.awm.gov.au/collection/LIB100044013',
+  'IWM – What was the Battle of the Somme?: https://www.iwm.org.uk/history/what-was-the-battle-of-the-somme',
+  'National Archives (UK) – battalion war diaries: https://www.nationalarchives.gov.uk/'
+]; const text = citations.join('\n'); navigator.clipboard && navigator.clipboard.writeText(text).then(()=>{ alert('Citations copied to clipboard'); }, ()=>{ prompt('Copy these links:', text); }); }
+
+function resetAll(){ if(confirm('Reset saved images and editable text?')){ try { const keys = Object.keys(localStorage).filter(k => k.endsWith('-img') || k.endsWith('Preview-img')); keys.forEach(k => localStorage.removeItem(k)); } catch(e){} location.reload(); } }
 </script>
 
 </body>
